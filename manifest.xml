@@ -1,13 +1,13 @@
 <package>
-  <description brief="composite_controller">
+  <description brief="composite_controllers">
 
-     composite_controller
+     composite_controllers
 
   </description>
   <author>Jonathan Bohren</author>
   <license>BSD</license>
   <review status="unreviewed" notes=""/>
-  <url>http://ros.org/wiki/composite_controller</url>
+  <url>http://ros.org/wiki/composite_controllers</url>
 
 </package>
 
