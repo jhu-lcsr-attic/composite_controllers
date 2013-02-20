@@ -13,6 +13,7 @@
   <depend package="hardware_interface"/>
   <depend package="controller_interface"/>
   <depend package="controller_manager"/>
+  <depend package="composite_controllers_msgs"/>
 </package>
 
 

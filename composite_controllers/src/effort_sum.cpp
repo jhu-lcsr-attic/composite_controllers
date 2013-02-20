@@ -29,8 +29,8 @@
 
 #include <controller_interface/controller.h>
 #include <controller_manager/controller_manager.h>
-#include <controller_manager_msgs/LoadController.h>
-#include <controller_manager_msgs/UnloadController.h>
+#include <composite_controllers_msgs/AddSubcontroller.h>
+#include <composite_controllers_msgs/DelSubcontroller.h>
 #include <hardware_interface/joint_command_interface.h>
 
 
@@ -92,14 +92,6 @@ namespace composite_controllers
 
     EffortSum()
     {
-      // Add services
-      srv_add_subcontroller_ = cm_node_.advertiseService(
-          "add_subcontroller",
-          &EffortSum::add_subcontroller_srv, this);
-
-      srv_del_subcontroller_ = cm_node_.advertiseService(
-          "del_subcontroller",
-          &EffortSum::del_subcontroller_srv, this);
     }
 
     ~EffortSum();
@@ -107,6 +99,9 @@ namespace composite_controllers
     bool init(hardware_interface::EffortJointInterface *effort_interface,
               ros::NodeHandle &nh)
     {
+      // Grab the handle
+      nh_ = nh;
+
       // Get the list of joints that this effort sum will control
       XmlRpc::XmlRpcValue xml_joint_names;
       nh.getParam("joints", xml_joint_names);
@@ -115,9 +110,10 @@ namespace composite_controllers
         return false;
       }
 
-      for (unsigned int i = 0; i < xml_joint_names.size(); ++i) {
-        ROS_ASSERT(my_list[i].getType() == XmlRpc::XmlRpcValue::TypeString);
-        joint_names_.push_back(static_cast<std::string>(xml_joint_names[i]));
+      joint_names_.resize(xml_joint_names.size());
+      for (int j = 0; j < xml_joint_names.size(); ++j) {
+        ROS_ASSERT(xml_joint_names[j].getType() == XmlRpc::XmlRpcValue::TypeString);
+        joint_names_[j] = static_cast<std::string>(xml_joint_names[j]);
       }
 
       // Count the number of joints
@@ -125,11 +121,21 @@ namespace composite_controllers
 
       // Acquire joint handles for thie actual hardware
       joint_handles_.resize(n_joints_);
-      for(unsigned int j=0; j<n_joints; j++){
+      for(unsigned int j=0; j<n_joints_; j++){
         // Note: calling getJointHandle claims this joint resource
         joint_handles_[j] = effort_interface->getJointHandle(joint_names_[j]);
       }
 
+      // Add services
+      add_subcontroller_srv_ = nh.advertiseService(
+          "add_subcontroller",
+          &EffortSum::add_subcontroller_srv_cb, this);
+
+      del_subcontroller_srv_ = nh.advertiseService(
+          "del_subcontroller",
+          &EffortSum::del_subcontroller_srv_cb, this);
+
+      return true;
     }
 
     void starting(const ros::Time& time) {
@@ -139,12 +145,12 @@ namespace composite_controllers
     {
       // Iterate through the subcontrollers
       for(std::map<std::string,SubController>::iterator subcontroller = subcontrollers_.begin();
-          subcontroller != controller_managers_.end();
+          subcontroller != subcontrollers_.end();
           ++subcontroller)
       {
         // Unpack
-        EffortSumHWPtr hw = subcontroller->second->first;
-        ControllerManagerPtr cm = subcontroller->second->second;
+        EffortSumHWPtr hw = subcontroller->second.first;
+        ControllerManagerPtr cm = subcontroller->second.second;
 
         // Read the state from the lower-level controller
         hw->read_state(joint_handles_);
@@ -157,9 +163,9 @@ namespace composite_controllers
       // Iterate through the joints
       for(unsigned int j=0; j < n_joints_; j++) {
         // Set the effort for the lower-level controller
-        joint_handles_[j].setCommand(effort_commands_[j]);
+        joint_handles_[j].setCommand(joint_effort_command_[j]);
         // Reset the effort command
-        effort_commands_[j] = 0.0;
+        joint_effort_command_[j] = 0.0;
       }
           
     }
@@ -167,12 +173,12 @@ namespace composite_controllers
     bool add_subcontroller(const std::string &name)
     {
       // Create a new EffortSumHW for the controller manager to control
-      boost::shared_ptr<EffortSumHW> new_hw(new EffortSumHW());
+      boost::shared_ptr<EffortSumHW> new_hw(new EffortSumHW(joint_names_));
 
       // Create a new controller manager
       ControllerManagerPtr new_manager(
           new controller_manager::ControllerManager(
-              new_hw,
+              new_hw.get(),
               ros::NodeHandle(nh_,name)));
 
       // Store them
@@ -196,6 +202,8 @@ namespace composite_controllers
     }
 
   private:
+    ros::NodeHandle nh_;
+    unsigned int n_joints_;
     std::vector<std::string> joint_names_;
     std::vector<double> joint_effort_command_;
     std::vector<hardware_interface::JointHandle> joint_handles_;
@@ -205,25 +213,26 @@ namespace composite_controllers
     typedef std::pair<EffortSumHWPtr,ControllerManagerPtr> SubController;
     std::map<std::string,SubController> subcontrollers_;
 
+    ros::ServiceServer add_subcontroller_srv_, del_subcontroller_srv_;
 
-    bool add_subcontroller_srv(
-        controller_manager_msgs::LoadController::Request &req,
-        controller_manager_msgs::LoadController::Response &resp)
+    bool add_subcontroller_srv_cb(
+        composite_controllers_msgs::AddSubcontroller::Request &req,
+        composite_controllers_msgs::AddSubcontroller::Response &resp)
     {
-      resp.ok = true;
-      return this->add_subcontroller(req.name);
+      resp.ok = this->add_subcontroller(req.name);
+      return resp.ok;
     }
 
-    bool del_subcontroller_srv(
-        controller_manager_msgs::UnloadController::Request &req,
-        controller_manager_msgs::UnloadController::Response &resp)
+    bool del_subcontroller_srv_cb(
+        composite_controllers_msgs::DelSubcontroller::Request &req,
+        composite_controllers_msgs::DelSubcontroller::Response &resp)
     {
-      resp.ok = true;
-      return this->del_subcontroller(req.name);
+      resp.ok = this->del_subcontroller(req.name);
+      return resp.ok;
     }
 
   };
 
 }
 
-PLUGINLIB_DECLARE_CLASS(effort_controllers, JointPositionController, effort_controllers::JointPositionController, controller_interface::ControllerBase)
+PLUGINLIB_DECLARE_CLASS(composite_controllers, EffortSum, composite_controllers::EffortSum, controller_interface::ControllerBase)
