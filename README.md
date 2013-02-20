@@ -1,4 +1,4 @@
 Composite Controllers
 =====================
 
-Controllers are composed of other controllers.
+Controllers that are composed of other controllers.
