@@ -8,7 +8,7 @@ This example involves loading a controller which adds the effort commands of
 multiple subcontrollers. Each of the subcontrollers commands 1.0 units of
 effort, so the commanded effort for the robot should be 2.0 on each joint.
 
-```bash
+```shell
 # Start the test program (the commanded effort will be printed to console)
 roslaunch composite_controllers_tests effort_sum.launch
 
