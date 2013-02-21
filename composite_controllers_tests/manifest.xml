@@ -9,6 +9,13 @@
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/composite_controllers_tests</url>
 
+  <depend package="composite_controllers"/>
+  <depend package="controller_interface"/>
+
+  <export>
+    <controller_interface plugin="${prefix}/test_controllers_plugin.xml" />
+  </export>
+
 </package>
 
 
