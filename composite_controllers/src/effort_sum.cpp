@@ -1,27 +1,4 @@
 
-/**
-   @class effort_controllers::JointPositionController
-   @brief Joint Position Controller
-
-   This class controls positon using a pid loop.
-
-   @section ROS ROS interface
-
-   @param type Must be "effort_controllers::JointPositionController"
-   @param joint Name of the joint to control.
-   @param pid Contains the gains for the PID loop around position.  See: control_toolbox::Pid
-
-   Subscribes to:
-
-   - @b command (std_msgs::Float64) : The joint position to achieve.
-
-   Publishes:
-
-   - @b state (controllers_msgs::JointControllerState) :
-     Current state of the controller, including pid error and gains.
-
-*/
-
 #include <ros/ros.h>
 #include <boost/scoped_ptr.hpp>
 #include <boost/thread/condition.hpp>
@@ -32,8 +9,6 @@
 #include <composite_controllers_msgs/AddSubcontroller.h>
 #include <composite_controllers_msgs/DelSubcontroller.h>
 #include <hardware_interface/joint_command_interface.h>
-
-
 
 namespace composite_controllers
 {
