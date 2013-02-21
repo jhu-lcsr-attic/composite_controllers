@@ -29,6 +29,6 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 #rosbuild_add_executable(example examples/example.cpp)
 #target_link_libraries(example ${PROJECT_NAME})
 
-rosbuild_add_library(composite_controller_tests src/effort_test_controller.cpp)
+rosbuild_add_library(composite_controllers_tests src/effort_test_controller.cpp)
 
 rosbuild_add_executable(dummy_app src/dummy_app.cpp)

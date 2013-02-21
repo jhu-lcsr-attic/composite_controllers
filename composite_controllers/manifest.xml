@@ -14,6 +14,12 @@
   <depend package="controller_interface"/>
   <depend package="controller_manager"/>
   <depend package="composite_controllers_msgs"/>
+
+  <export>
+    <controller_interface plugin="${prefix}/composite_controllers_plugin.xml" />
+  </export>
+
+
 </package>
 
 

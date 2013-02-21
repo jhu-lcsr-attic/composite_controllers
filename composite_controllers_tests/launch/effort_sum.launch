@@ -1,0 +1,12 @@
+<launch>
+  <node pkg="composite_controllers_tests"
+    type="dummy_app" name="dummy_app"
+    output="screen"/>
+  <rosparam>
+    effort_sum_controller:
+      type: composite_controllers/EffortSum
+      joints: ['joint1','joint2']
+      c1: {effort_test_controller: {type: composite_controllers_tests/EffortTestController } }
+      c2: {effort_test_controller: {type: composite_controllers_tests/EffortTestController } }
+  </rosparam>
+</launch>

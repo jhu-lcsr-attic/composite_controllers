@@ -29,4 +29,6 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 #rosbuild_add_executable(example examples/example.cpp)
 #target_link_libraries(example ${PROJECT_NAME})
 
-rosbuild_add_library(composite_controllers src/effort_sum.cpp)
+rosbuild_add_library(composite_controllers 
+  src/effort_sum.cpp include/composite_controllers/effort_sum.h)
+

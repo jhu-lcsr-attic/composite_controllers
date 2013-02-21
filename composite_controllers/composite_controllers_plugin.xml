@@ -1,0 +1,9 @@
+<library path="lib/libcomposite_controllers">
+  <class name="composite_controllers/EffortSum"
+    type="composite_controllers::EffortSum"
+    base_class_type="controller_interface::ControllerBase">
+  <description>
+    This controller adds the effort commands of a number of sub-controllers.
+  </description>
+  </class>
+</library>
